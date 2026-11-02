@@ -1,0 +1,39 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Entorno y Secretos
+.env
+.env.*
+!.env.example
+accounts.json
+*.pem
+*.key
+credentials.json
+
+# Perfiles de Navegador Persistente (Sesiones, Cookies, Tokens)
+browser-profile/
+secondary-profile/
+*-profile/
+temp/
+
+# Scripts de sistema o PowerShell locales
+*.ps1
+
+# Archivos de medios temporales y capturas de pantalla de depuración
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.mov
+*.pdf
+
+# Logs del sistema
+*.log
+npm-debug.log*
+yarn-debug.log*
+.system_generated/
+
+# Archivos de SO
+.DS_Store
+Thumbs.db

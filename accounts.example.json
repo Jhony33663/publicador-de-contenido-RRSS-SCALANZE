@@ -1,0 +1,26 @@
+{
+  "cuenta_principal": {
+    "id": "cuenta_principal",
+    "name": "Marca Digital",
+    "instagram_user": "tu_usuario_ig",
+    "tiktok_user": "tu_usuario_tiktok",
+    "facebook_name": "Nombre de tu Página de Facebook",
+    "facebook_url": "https://www.facebook.com/tu-pagina-o-id",
+    "profile_dir": "./browser-profile",
+    "platforms": ["instagram", "tiktok", "facebook", "linkedin"],
+    "c2pa_author": "creado por el equipo de contenidos",
+    "default_hashtags": "#MarketingDigital #SocialMedia #GrowthLoop #ContentCreation"
+  },
+  "cuenta_secundaria": {
+    "id": "cuenta_secundaria",
+    "name": "Marca Secundaria",
+    "instagram_user": "otra_cuenta_ig",
+    "tiktok_user": "otra_cuenta_tiktok",
+    "facebook_name": "Otra Página de Facebook",
+    "facebook_url": "https://www.facebook.com/otra-pagina-o-id",
+    "profile_dir": "./secondary-profile",
+    "platforms": ["instagram", "tiktok", "facebook"],
+    "c2pa_author": "creado por el equipo creativo",
+    "default_hashtags": "#ContenidoViral #Reels #TikTok"
+  }
+}
