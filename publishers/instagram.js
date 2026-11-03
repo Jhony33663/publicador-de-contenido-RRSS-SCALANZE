@@ -54,9 +54,22 @@ export async function publishToInstagram(context, { caption, imagePath, videoPat
     await createBtn.click();
     await page.waitForTimeout(1500);
 
+    // Si al hacer clic en Crear se despliega un submenú y aún no está el file input
+    let fileInput = await page.$('input[type="file"]');
+    if (!fileInput) {
+      try {
+        const postSubMenu = await page.$('span:has-text("Post"), span:has-text("Publicación"), div[role="button"]:has-text("Post"), div[role="button"]:has-text("Publicación")');
+        if (postSubMenu && await postSubMenu.isVisible()) {
+          console.log('[Instagram] Submenú detectado, haciendo clic en "Publicación"...');
+          await postSubMenu.click();
+          await page.waitForTimeout(1000);
+        }
+      } catch (_) {}
+    }
+
     // Subir archivo multimedia
     console.log(`[Instagram] Subiendo archivo (${isVideo ? 'Video/Reel' : 'Imagen'}): ${targetMedia}`);
-    const fileInput = await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 15000 });
+    fileInput = await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 15000 });
     await fileInput.setInputFiles(targetMedia);
     await page.waitForTimeout(4000);
 
@@ -84,7 +97,14 @@ export async function publishToInstagram(context, { caption, imagePath, videoPat
       }
     } catch (_) {}
 
-    const nextBtnSelector = 'div[role="button"]:has-text("Next"), div[role="button"]:has-text("Siguiente"), button:has-text("Next"), button:has-text("Siguiente")';
+    const nextBtnSelector = [
+      'div[role="button"]:has-text("Next")',
+      'div[role="button"]:has-text("Siguiente")',
+      'button:has-text("Next")',
+      'button:has-text("Siguiente")',
+      'div[role="dialog"] div[role="button"]:has-text("Next")',
+      'div[role="dialog"] div[role="button"]:has-text("Siguiente")',
+    ].join(', ');
 
     // Paso 1: Clic en Siguiente (Recorte)
     console.log('[Instagram] Avanzando paso de recorte...');
@@ -138,7 +158,12 @@ export async function publishToInstagram(context, { caption, imagePath, videoPat
 
     // Clic en Compartir / Share
     console.log('[Instagram] Haciendo clic en Compartir (header del modal)...');
-    const shareBtn = page.locator('div[role="dialog"] div[role="button"]:has-text("Share"), div[role="dialog"] div[role="button"]:has-text("Compartir")').first();
+    const shareBtn = page.locator([
+      'div[role="dialog"] div[role="button"]:has-text("Share")',
+      'div[role="dialog"] div[role="button"]:has-text("Compartir")',
+      'div[role="dialog"] button:has-text("Share")',
+      'div[role="dialog"] button:has-text("Compartir")',
+    ].join(', ')).first();
     await shareBtn.click({ force: true });
 
     // Esperar confirmación
