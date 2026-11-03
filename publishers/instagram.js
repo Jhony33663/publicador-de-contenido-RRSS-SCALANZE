@@ -12,7 +12,7 @@ const DEFAULT_C2PA_METADATA = 'Si publicas imágenes o vídeos que contengan cre
  * @param {string} [options.mediaPath]
  * @param {string} [options.altText]
  */
-export async function publishToInstagram(context, { caption, imagePath, videoPath, mediaPath, altText }) {
+export async function publishToInstagram(context, { caption, imagePath, videoPath, mediaPath, altText, coverPath }) {
   const targetMedia = videoPath || imagePath || mediaPath;
   if (!targetMedia || !fs.existsSync(targetMedia)) {
     throw new Error(`Instagram requiere una imagen o video válido. Archivo no encontrado: ${targetMedia}`);
@@ -112,7 +112,22 @@ export async function publishToInstagram(context, { caption, imagePath, videoPat
     await nextBtn.click({ force: true });
     await page.waitForTimeout(2500);
 
-    // Paso 2: Clic en Siguiente (Portada/Filtros)
+    // Paso 2: Portada personalizada (si es video y se proporcionó coverPath)
+    if (isVideo && coverPath && fs.existsSync(coverPath)) {
+      try {
+        console.log(`[Instagram] Inyectando miniatura/portada personalizada: ${coverPath}`);
+        const coverInput = await page.$('div[role="dialog"] input[type="file"][accept*="image"]');
+        if (coverInput) {
+          await coverInput.setInputFiles(path.resolve(coverPath));
+          await page.waitForTimeout(2500);
+          console.log('[Instagram] ✅ Portada personalizada inyectada correctamente.');
+        }
+      } catch (coverErr) {
+        console.warn('[Instagram] Aviso: No se pudo inyectar la portada personalizada, continuando:', coverErr.message);
+      }
+    }
+
+    // Avanzar paso de filtros/portada hacia caption
     console.log('[Instagram] Avanzando paso de filtros/portada...');
     nextBtn = await page.waitForSelector(nextBtnSelector, { timeout: 15000 });
     await nextBtn.click({ force: true });
@@ -167,21 +182,33 @@ export async function publishToInstagram(context, { caption, imagePath, videoPat
     await shareBtn.click({ force: true });
 
     // Esperar confirmación
-    console.log('[Instagram] Esperando confirmación de subida en el diálogo...');
+    console.log('[Instagram] Esperando confirmación de subida y procesamiento en el diálogo...');
     let confirmed = false;
-    for (let i = 1; i <= 12; i++) {
+    for (let i = 1; i <= 24; i++) {
       await page.waitForTimeout(5000);
       const dialogText = await page.$eval('div[role="dialog"]', el => el.innerText).catch(() => 'closed');
       console.log(`[Instagram T+${i * 5}s] Estado:`, dialogText.replace(/\n+/g, ' ').slice(0, 80));
-      if (
-        dialogText.includes('Post shared') ||
-        dialogText.includes('compartido') ||
+
+      const isActuallyShared = (
+        dialogText.includes('Se ha compartido el reel') ||
+        dialogText.includes('Se ha compartido tu reel') ||
+        dialogText.includes('Se ha compartido tu publicación') ||
         dialogText.includes('Your reel has been shared') ||
-        dialogText.includes('Tu reel se ha compartido') ||
+        dialogText.includes('Your post has been shared') ||
+        dialogText.includes('Post shared') ||
         dialogText === 'closed'
-      ) {
+      ) && !dialogText.includes('Escribe un pie de foto') && !dialogText.includes('Write a caption');
+
+      if (isActuallyShared) {
         confirmed = true;
         console.log('🎉 [Instagram] Confirmación visual recibida: Reel/Publicación compartida con éxito.');
+        try {
+          const listoBtn = await page.$('button:has-text("Listo"), div[role="button"]:has-text("Listo"), button:has-text("Done")');
+          if (listoBtn) {
+            await listoBtn.click();
+            await page.waitForTimeout(2000);
+          }
+        } catch (_) {}
         break;
       }
     }

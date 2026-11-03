@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const JMPUERTAG_PROFILE = path.join(__dirname, 'jmpuertag-profile');
 const VIDEOS_DIR = 'C:\\Users\\jhony\\Downloads\\PSC DP1';
+const THUMBS_DIR = path.join(VIDEOS_DIR, 'miniaturas');
 
 export const PSC_POSTS = [
   {
@@ -16,6 +17,7 @@ export const PSC_POSTS = [
     title: 'Desnormalización de la violencia y maltrato laboral',
     file: 'WhatsApp Video 2026-10-30 at 12.26.17 PM.mp4',
     videoPath: path.join(VIDEOS_DIR, 'WhatsApp Video 2026-10-30 at 12.26.17 PM.mp4'),
+    coverPath: path.join(THUMBS_DIR, 'miniatura_1_violencia_laboral.jpg'),
     tiktok_caption: `¿Te han dicho alguna vez "es solo una broma, no te lo tomes personal"? 🚫🛑
 
 La humillación constante, los comentarios despectivos y la presión indebida NO son gajes del oficio ni cultura laboral. El respeto en el trabajo no es un favor que te hacen: es tu derecho humano y laboral fundamental. 🧠💼
@@ -44,6 +46,7 @@ En @prestaSaludmental promovemos entornos de trabajo donde la dignidad, la segur
     title: 'Cero tolerancia al acoso sexual laboral e insinuaciones',
     file: 'WhatsApp Video 2026-10-30 at 12.26.18 PM.mp4',
     videoPath: path.join(VIDEOS_DIR, 'WhatsApp Video 2026-10-30 at 12.26.18 PM.mp4'),
+    coverPath: path.join(THUMBS_DIR, 'miniatura_2_acoso_sexual.jpg'),
     tiktok_caption: `Un piropo no deseado o un mensaje fuera de lugar NO es un halago: es acoso. 🛑✋
 
 En el ámbito laboral, los límites de tu cuerpo, tu espacio y tu tranquilidad jamás son negociables. Si una conducta, broma de doble sentido o mensaje te hace sentir incómodo o intimidado, no tienes que justificarlo ni tolerarlo.
@@ -71,6 +74,7 @@ Comparte este mensaje: puede ser el salvavidas que alguien en tu círculo necesi
     title: 'El rol del testigo y romper el silencio (Bystander effect)',
     file: 'WhatsApp Video 2026-10-30 at 12.26.19 PM.mp4',
     videoPath: path.join(VIDEOS_DIR, 'WhatsApp Video 2026-10-30 at 12.26.19 PM.mp4'),
+    coverPath: path.join(THUMBS_DIR, 'miniatura_3_efecto_espectador.jpg'),
     tiktok_caption: `Mirar hacia otro lado también deja consecuencias. 👁️⚡
 
 Cuando presenciamos burlas, exclusión o humillaciones a un compañero y elegimos el silencio, la hostilidad gana terreno. Romper la indiferencia es un acto de valentía y empatía humana. 
@@ -98,6 +102,7 @@ Guarda este post y etiquétalo a ese colega que siempre cuida a los demás. 👇
     title: 'Comunicación consciente vs. apodos, burlas y microagresiones',
     file: 'WhatsApp Video 2026-10-30 at 12.26.21 PM.mp4',
     videoPath: path.join(VIDEOS_DIR, 'WhatsApp Video 2026-10-30 at 12.26.21 PM.mp4'),
+    coverPath: path.join(THUMBS_DIR, 'miniatura_4_comunicacion_asertiva.jpg'),
     tiktok_caption: `"Es solo un apodo cariñoso"... ¿Seguro que a la otra persona le causa gracia? 🤐
 
 Opinar del cuerpo ajeno, poner apodos que incomodan o lanzar comentarios machistas o discriminatorios rompe la confianza de cualquier equipo. Tus palabras tienen un impacto real y profundo: pueden impulsar o destruir la seguridad de alguien. 
@@ -125,6 +130,7 @@ Comenta: ¿Qué frase te gustaría que se escuchara más seguido en tu oficina? 
     title: 'Rutas de atención, apoyo institucional y confidencialidad',
     file: 'WhatsApp Video 2026-10-30 at 12.26.22 PM.mp4',
     videoPath: path.join(VIDEOS_DIR, 'WhatsApp Video 2026-10-30 at 12.26.22 PM.mp4'),
+    coverPath: path.join(THUMBS_DIR, 'miniatura_5_rutas_atencion.jpg'),
     tiktok_caption: `No tienes que cargar con esto en soledad ni con miedo a represalias. 🤍🛡️
 
 Si estás pasando por una situación de hostigamiento o violencia en tu empleo, existen protocolos estrictos de confidencialidad diseñados exclusivamente para protegerte, orientarte y brindarte apoyo profesional.
@@ -154,7 +160,7 @@ async function runPublisher() {
   const videoArg = args.find(a => a.startsWith('--video='));
   const targetVideoId = videoArg ? parseInt(videoArg.split('=')[1], 10) : null;
   const platformArg = args.find(a => a.startsWith('--platform='));
-  const targetPlatform = platformArg ? platformArg.split('=')[1].toLowerCase() : 'all'; // 'all', 'instagram', 'tiktok'
+  const targetPlatform = platformArg ? platformArg.split('=')[1].toLowerCase() : 'all';
   const isHeadful = !args.includes('--headless');
 
   console.log('===================================================================');
@@ -193,6 +199,7 @@ async function runPublisher() {
       console.log('\n-------------------------------------------------------------------');
       console.log(`🎬 INICIANDO PUBLICACIÓN: Video #${post.id} - ${post.title}`);
       console.log(`📁 Archivo: ${post.videoPath}`);
+      console.log(`🖼️ Portada: ${post.coverPath}`);
       console.log('-------------------------------------------------------------------');
 
       // 1. TikTok
@@ -214,14 +221,15 @@ async function runPublisher() {
 
       // 2. Instagram
       if (targetPlatform === 'all' || targetPlatform === 'instagram') {
-        console.log('\n📸 [Instagram] Publicando reel...');
+        console.log('\n📸 [Instagram] Publicando reel con miniatura personalizada...');
         try {
           const igRes = await publishToInstagram(context, {
             caption: post.instagram_caption,
             videoPath: post.videoPath,
+            coverPath: post.coverPath,
           });
           results.push({ post_id: post.id, platform: 'instagram', success: true, detail: igRes });
-          console.log(`✅ [Instagram] Video #${post.id} publicado exitosamente.`);
+          console.log(`✅ [Instagram] Video #${post.id} publicado exitosamente con portada.`);
         } catch (igErr) {
           console.error(`❌ [Instagram] Fallo al publicar Video #${post.id}:`, igErr.message);
           results.push({ post_id: post.id, platform: 'instagram', success: false, error: igErr.message });
