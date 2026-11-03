@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 const DEFAULT_C2PA_METADATA = 'Si publicas imágenes o vídeos que contengan credenciales de C2PA, lo indicaremos con el icono de C2PA como aparece a continuación. Los usuarios podrán hacer clic en el icono para consultar los metadatos disponibles. hecho por el equipo de scalanze';
 
@@ -116,11 +117,25 @@ export async function publishToInstagram(context, { caption, imagePath, videoPat
     if (isVideo && coverPath && fs.existsSync(coverPath)) {
       try {
         console.log(`[Instagram] Inyectando miniatura/portada personalizada: ${coverPath}`);
-        const coverInput = await page.$('div[role="dialog"] input[type="file"][accept*="image"]');
+        let coverInput = await page.$('div[role="dialog"] input[type="file"][accept*="image"]');
+        if (!coverInput) {
+          coverInput = await page.$('input[type="file"][accept*="image"]');
+        }
         if (coverInput) {
-          await coverInput.setInputFiles(path.resolve(coverPath));
+          await coverInput.setInputFiles(coverPath);
           await page.waitForTimeout(2500);
           console.log('[Instagram] ✅ Portada personalizada inyectada correctamente.');
+        } else {
+          const selectComp = await page.$('div[role="dialog"] div:has-text("Select from computer"), div[role="dialog"] div:has-text("Seleccionar del ordenador"), div[role="dialog"] span:has-text("Select from computer"), div[role="dialog"] span:has-text("Seleccionar del ordenador")');
+          if (selectComp) {
+            const [fileChooser] = await Promise.all([
+              page.waitForEvent('filechooser', { timeout: 7000 }),
+              selectComp.click(),
+            ]);
+            await fileChooser.setFiles(coverPath);
+            await page.waitForTimeout(2500);
+            console.log('[Instagram] ✅ Portada personalizada cargada via FileChooser.');
+          }
         }
       } catch (coverErr) {
         console.warn('[Instagram] Aviso: No se pudo inyectar la portada personalizada, continuando:', coverErr.message);
